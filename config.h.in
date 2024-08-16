@@ -1,0 +1,292 @@
+
+#cmakedefine PACKAGE "@PACKAGE@"
+
+#cmakedefine PACKAGE_NAME "@PACKAGE_NAME@"
+
+#cmakedefine PACKAGE_TARNAME "@CMAKE_PROJECT_NAME@"
+
+#cmakedefine PACKAGE_VERSION "@PACKAGE_VERSION@"
+
+#cmakedefine PACKAGE_STRING "@PACKAGE_STRING@"
+
+#cmakedefine PACKAGE_BUGREPORT "@PACKAGE_BUGREPORT@"
+
+#cmakedefine PACKAGE_URL "@PACKAGE_URL@"
+
+/* Enable Anyconnect compatibility */
+#cmakedefine ANYCONNECT_CLIENT_COMPAT
+
+/* Enable capturing latency stats */
+#cmakedefine CAPTURE_LATENCY_SUPPORT
+
+/* Enable adaptive rate limiting */
+#cmakedefine ENABLE_ADAPTIVE_RATE_LIMIT_SUPPORT
+
+/* compression enabled */
+#cmakedefine ENABLE_COMPRESSION
+
+/* gnutls has a broken gnutls_certificate_set_key() -- not using gnutls */
+#cmakedefine GNUTLS_BROKEN_CERTIFICATE_SET_KEY
+
+/* Define to 1 if you have the 'clock_gettime' function. */
+#cmakedefine HAVE_CLOCK_GETTIME
+
+/* Define to 1 if you have the <crypt.h> header file. */
+#cmakedefine HAVE_CRYPT_H
+
+/* Define if you have the libev library. */
+#cmakedefine HAVE_LIBEV
+
+/* Define to 1 if you have the 'free' function. */
+#cmakedefine HAVE_FREE
+
+/** geoip libraries, cannot be mixed */
+/* have libgeoip */
+#cmakedefine HAVE_GEOIP
+
+/* have libmaxminddb */
+#cmakedefine HAVE_MAXMIND
+
+/* Define to 1 if you have the 'getcontext' function. */
+#cmakedefine HAVE_GETCONTEXT
+
+/* Define to 1 if you have the 'getpeereid' function. */
+#cmakedefine HAVE_GETPEEREID
+
+/* GSSAPI was found */
+#cmakedefine HAVE_GSSAPI
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#cmakedefine HAVE_INTTYPES_H
+
+/* Define to 1 if you have the 'isatty' function. */
+#cmakedefine HAVE_ISATTY
+
+/* Define if you have the libcrypt library. */
+#cmakedefine HAVE_LIBCRYPT
+
+/* Define if you have the libm library. */
+#cmakedefine HAVE_LIBM
+
+/* have libnl */
+#cmakedefine HAVE_LIBNL
+
+/* Enable the liboath library */
+#cmakedefine HAVE_LIBOATH
+
+/* Define if you have the libprotobuf-c library. */
+#cmakedefine HAVE_LIBPROTOBUF_C
+
+/* Define if you have the libseccomp library. */
+#cmakedefine HAVE_LIBSECCOMP
+
+/* Define if you have the libsystemd library. */
+#cmakedefine HAVE_LIBSYSTEMD
+
+/* have libtalloc */
+#cmakedefine HAVE_LIBTALLOC
+
+/* Define if you have the libutil library. */
+#cmakedefine HAVE_LIBUTIL
+
+/* Define to 1 if you have the <linux/if_tun.h> header file. */
+#cmakedefine HAVE_LINUX_IF_TUN_H
+
+/* Define to 1 if you have the <linux/netlink.h> header file. */
+#cmakedefine HAVE_LINUX_NETLINK_H
+
+/* Define to 1 if you have the <linux/net_tstamp.h> header file. */
+#cmakedefine HAVE_LINUX_NET_TSTAMP_H
+
+/* Define to 1 if you have the <linux/rtnetlink.h> header file. */
+#cmakedefine HAVE_LINUX_RTNETLINK_H
+
+/* Define to 1 if you have the <linux/sock_diag.h> header file. */
+#cmakedefine HAVE_LINUX_SOCK_DIAG_H
+
+/* Define to 1 if you have the <linux/unix_diag.h> header file. */
+#cmakedefine HAVE_LINUX_UNIX_DIAG_H
+
+/* Define to 1 if you have the 'longjmp' function. */
+#cmakedefine HAVE_LONGJMP
+
+/* LZ4 was found */
+#cmakedefine HAVE_LZ4
+
+/* Define to 1 if you have the 'makecontext' function. */
+#cmakedefine HAVE_MAKECONTEXT
+
+/* Define to 1 if you have the 'malloc' function. */
+#cmakedefine HAVE_MALLOC
+
+/* Define to 1 if you have the 'malloc_trim' function. */
+#cmakedefine HAVE_MALLOC_TRIM
+
+/* Define to 1 if you have the 'memset' function. */
+#cmakedefine HAVE_MEMSET
+
+/* Define to 1 if you have the <minix/config.h> header file. */
+#cmakedefine HAVE_MINIX_CONFIG_H
+
+/* Define to 1 if you have the <netinet/in_systm.h> header file. */
+#cmakedefine HAVE_NETINET_IN_SYSTM_H
+
+/* Define to 1 if you have the <net/if_tun.h> header file. */
+#cmakedefine HAVE_NET_IF_TUN_H
+
+/* Define if you have the libreadline library. */
+#cmakedefine HAVE_LIBREADLINE
+
+/* have original readline */
+#cmakedefine HAVE_ORIG_READLINE
+
+/* Enable the PAM library */
+#cmakedefine HAVE_PAM
+
+/* Define to 1 if you have the 'posix_memalign' function. */
+#cmakedefine HAVE_POSIX_MEMALIGN
+
+/* Define to 1 if you have the 'ppoll' function. */
+#cmakedefine HAVE_PPOLL
+
+/* Define to 1 if you have the 'pselect' function. */
+#cmakedefine HAVE_PSELECT
+
+/* Define to 1 if you have the 'setjmp' function. */
+#cmakedefine HAVE_SETJMP
+
+/* Define to 1 if you have the 'setproctitle' function. */
+#cmakedefine HAVE_SETPROCTITLE
+
+/* Define to 1 if you have the 'sigaction' function. */
+#cmakedefine HAVE_SIGACTION
+
+/* Define to 1 if you have the 'sigaltstack' function. */
+#cmakedefine HAVE_SIGALTSTACK
+
+/* Define to 1 if the system has the type 'sighandler_t'. */
+#cmakedefine HAVE_SIGHANDLER_T
+
+/* Define to 1 if the system has the type 'sig_t'. */
+#cmakedefine HAVE_SIG_T
+
+/* Do we have sockaddr.sa_len? */
+#cmakedefine HAVE_SOCKADDR_SA_LEN
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#cmakedefine HAVE_STDIO_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the 'strlcpy' function. */
+#cmakedefine HAVE_STRLCPY
+
+/* Define to 1 if you have the 'strsep' function. */
+#cmakedefine HAVE_STRSEP
+
+/* Define to 1 if 'ihl' is a member of 'struct iphdr'. */
+#cmakedefine HAVE_STRUCT_IPHDR_IHL
+
+/* Define to 1 if the system has the type 'struct scm_timestamping'. */
+#cmakedefine HAVE_STRUCT_SCM_TIMESTAMPING
+
+/* Define to 1 if the system has the type 'struct ucred'. */
+#cmakedefine HAVE_STRUCT_UCRED
+
+/* Define to 1 if you have the 'swapcontext' function. */
+#cmakedefine HAVE_SWAPCONTEXT
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#cmakedefine HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#cmakedefine HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#cmakedefine HAVE_UNISTD_H
+
+/* Define to 1 if you have the 'vasprintf' function. */
+#cmakedefine HAVE_VASPRINTF
+
+/* Define to 1 if you have the <wchar.h> header file. */
+#cmakedefine HAVE_WCHAR_H
+
+/* Define to 1 if the system has the type '__sighandler_t'. */
+#cmakedefine HAVE___SIGHANDLER_T
+
+/* inih configuration */
+#cmakedefine INI_ALLOW_MULTILINE
+
+/* inih configuration */
+#cmakedefine INI_INLINE_COMMENT_PREFIXES
+
+/* inih configuration */
+#cmakedefine INI_MAX_LINE
+
+/* inih configuration */
+#cmakedefine INI_STOP_ON_FIRST_ERROR
+
+/* Enable Linux namespaces */
+#cmakedefine LINUX_NAMESPACES
+
+/* The default pager for occtl */
+#cmakedefine OCCTL_PAGER "@OCCTL_PAGER@"
+
+/* procfs supported */
+#cmakedefine PROC_FS_SUPPORTED
+
+/* The size of 'unsigned long', as computed by sizeof. */
+#define SIZEOF_UNSIGNED_LONG @SIZEOF_ULONG@
+
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
+// #cmakedefine STDC_HEADERS
+#define STDC_HEADERS 1
+
+/* use signal on filtered calls */
+#cmakedefine USE_SECCOMP_TRAP
+
+/* Define if you have the libc library. */
+#cmakedefine HAVE_LIBC
+
+////////////////////////////////////////////////////////////////////////////////
+// not implemented
+
+/* Enable testing with cwrap
+ * @todo need to make custom search for cwrap */
+#cmakedefine HAVE_CWRAP
+/* Define if you have the libwrap library. */
+#cmakedefine HAVE_LIBWRAP
+
+/* Enable the Radius library */
+/** @todo: unimplemented */
+#cmakedefine HAVE_RADIUS
+
+/* Enable the legacy library support */
+/** @todo: not implemented */
+#cmakedefine LEGACY_RADIUS
+
+/* nettle uses the pre-3.x base64 API */
+/** @todo: not implemented */
+#cmakedefine NETTLE_OLD_BASE64_API
+
+/* Enable support for OpenID Connect auth */
+/** @todo: not implemented
+ * requires: curl, cjose, jansson */
+#cmakedefine SUPPORT_OIDC_AUTH
+
+/* have original glibc */
+/** @todo: not implemented */
+#cmakedefine TRY_SHA2_CRYPT
+

@@ -1,0 +1,10 @@
+
+pkg_check_modules(seccomp libseccomp)
+if (seccomp_FOUND)
+	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${seccomp_INCLUDE_DIRS})
+	target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE ${seccomp_LIBRARY_DIRS})
+	target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${seccomp_LINK_LIBRARIES})
+	set(HAVE_LIBSECCOMP ON CACHE BOOL "")
+else()
+	set(HAVE_LIBSECCOMP OFF CACHE BOOL "")
+endif()
