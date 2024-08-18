@@ -12,7 +12,8 @@ if (NOT LIBREADLINE_LIBRARY)
 	if (LIBREADLINE_LIBRARY)
 		set(HAVE_LIBREADLINE ON CACHE BOOL "")
 		message(CHECK_PASS "found")
-		target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE readline)
+
+		link_libraries(readline)
 
 		list(APPEND CMAKE_REQUIRED_LIBRARIES readline)
 		check_symbol_exists(rl_replace_line readline/readline.h HAVE_ORIG_READLINE_MID)

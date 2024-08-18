@@ -1,13 +1,16 @@
 
-pkg_check_modules(lz4 liblz4)
-if (lz4_FOUND)
-	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${lz4_INCLUDE_DIRS})
-	target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE ${lz4_LIBRARY_DIRS})
-	target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${lz4_LINK_LIBRARIES})
+if (WITH_LZ4)
+	pkg_check_modules(lz4 REQUIRED liblz4)
+
 	set(HAVE_LZ4 ON CACHE BOOL "")
 
-	list(APPEND SOURCES ${SOURCE_DIR}/lzs.c ${SOURCE_DIR}/lzs.h)
+	add_library(lz4-static STATIC ${SOURCE_DIR}/lzs.c ${SOURCE_DIR}/lzs.h)
+
+	include_directories(${lz4_INCLUDE_DIRS})
+	link_directories(${lz4_LIBRARY_DIRS})
+	link_libraries(${lz4_LINK_LIBRARIES} lz4-static)
 else()
-	message(STATUS "*** lz4 not found. Will disable compression support.")
+	unset(ENABLE_COMPRESSION CACHE)
 	set(HAVE_LZ4 OFF CACHE BOOL "")
-endif()
+	set(ENABLE_COMPRESSION OFF CACHE BOOL "")
+endif(WITH_LZ4)

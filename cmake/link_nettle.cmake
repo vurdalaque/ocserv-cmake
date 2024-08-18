@@ -9,6 +9,7 @@ if (NOT nettle_FOUND)
 	set(NETTLE_OLD_BASE64_API ON CACHE BOOL "")
 endif()
 
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${nettle_INCLUDE_DIRS})
-target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE ${nettle_LIBRARY_DIRS})
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${nettle_LINK_LIBRARIES})
+include_directories(${nettle_INCLUDE_DIRS})
+link_directories(${nettle_LIBRARY_DIRS})
+link_libraries(${nettle_LINK_LIBRARIES})
+

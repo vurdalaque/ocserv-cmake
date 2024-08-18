@@ -3,22 +3,24 @@ find_program(GPERF gperf REQUIRED)
 
 ################################################################################
 
-pkg_check_modules(protobuf_c libprotobuf-c1)
-if (protobuf_c_FOUND)
-	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${protobuf_c_INCLUDE_DIRS})
-	target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE ${protobuf_c_LIBRARY_DIRS})
-	target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${protobuf_c_LINK_LIBRARIES})
+if (WITH_PROTOBUF)
+pkg_check_modules(protobuf_c REQUIRED libprotobuf-c)
+	include_directories(${protobuf_c_INCLUDE_DIRS})
+	link_directories(${protobuf_c_LIBRARY_DIRS})
+	link_libraries(${protobuf_c_LINK_LIBRARIES})
+
+
 	set(HAVE_LIBPROTOBUF_C ON CACHE BOOL "")
+	set(WITH_LOCAL_PROTOBUF_C OFF CACHE BOOL "")
 else()
-	message(STATUS "*** libprotobuf-c was not found. An included version of the library will be used.")
+
 	add_library(protobuf-static STATIC
 		${SOURCE_DIR}/protobuf/protobuf-c/protobuf-c.h
 		${SOURCE_DIR}/protobuf/protobuf-c/protobuf-c.c)
 
 	set(HAVE_LIBPROTOBUF_C ON CACHE BOOL "")
 	set(WITH_LOCAL_PROTOBUF_C ON CACHE BOOL "")
-	# target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE protobuf-static)
-endif()
+endif(WITH_PROTOBUF)
 
 if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ipc.pb-c.h)
 	execute_process(COMMAND
@@ -39,7 +41,7 @@ add_library(ipc-static STATIC
 	ipc.pb-c.h ipc.pb-c.c)
 
 target_link_libraries(ipc-static PRIVATE protobuf-static)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ipc-static)
+link_libraries(ipc-static)
 
 ################################################################################
 # this is not quite correct, but will do gperf'ing

@@ -1,16 +1,14 @@
 
-if (NOT LIBM_LIBRARY)
-	message(CHECK_START "Looking for libm")
+if (WITH_M)
 
-	find_library (LIBM_LIBRARY NAMES m)
-	if (LIBM_LIBRARY)
-		set(HAVE_LIBM ON CACHE BOOL "")
-		message(CHECK_PASS "found")
-		target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE m)
-	else()
-		set(HAVE_LIBM OFF CACHE BOOL "")
-		message(CHECK_FAIL "not found")
-	endif()
+	find_library (LIBM_LIBRARY REQUIRED NAMES m)
+	set(HAVE_LIBM ON CACHE BOOL "")
+	link_libraries(m)
 
-endif(NOT LIBM_LIBRARY)
+else()
+	set(HAVE_LIBM OFF CACHE BOOL "")
+	if (CAPTURE_LATENCY_SUPPORT)
+		message(FATAL_ERROR "*** no libm found - capture latency stats must be disabled")
+	endif(CAPTURE_LATENCY_SUPPORT)
+endif(WITH_M)
 

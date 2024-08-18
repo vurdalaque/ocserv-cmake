@@ -1,15 +1,12 @@
 
-pkg_check_modules(systemd systemd)
-if (systemd_FOUND)
-	if (NOT "${systemd_LIBRARY_DIRS}" STREQUAL "")
-		target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${systemd_INCLUDE_DIRS})
-		target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE ${systemd_LIBRARY_DIRS})
-		target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${systemd_LINK_LIBRARIES})
-		set(HAVE_LIBSYSTEMD ON CACHE BOOL "")
-	else()
-		message(STATUS "*** systemd-devel is not installed")
-		set(HAVE_LIBSYSTEMD OFF CACHE BOOL "")
-	endif()
+if (WITH_SYSTEMD)
+
+	pkg_check_modules(systemd REQUIRED systemd)
+
+	link_libraries(systemd)
+
+	set(HAVE_LIBSYSTEMD ON CACHE BOOL "")
+
 else()
 	set(HAVE_LIBSYSTEMD OFF CACHE BOOL "")
 endif()

@@ -25,7 +25,6 @@ include(cmake/link_seccomp.cmake)
 include(cmake/link_crypt.cmake)
 include(cmake/link_wrap.cmake)
 include(cmake/link_systemd.cmake)
-include(cmake/link_talloc.cmake)
 include(cmake/link_lz4.cmake)
 include(cmake/link_pam.cmake)
 include(cmake/link_llhttp.cmake)
@@ -34,6 +33,7 @@ include(cmake/link_m.cmake)
 include(cmake/link_nl.cmake)
 include(cmake/link_util.cmake)
 include(cmake/link_readline.cmake)
+include(cmake/link_talloc.cmake)
 
 ################################################################################
 

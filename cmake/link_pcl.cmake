@@ -12,7 +12,8 @@ target_include_directories(pcl-static PRIVATE
 	${SOURCE_DIR}/pcl/
 	${CMAKE_CURRENT_BINARY_DIR})
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE pcl-static)
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${SOURCE_DIR}/pcl)
+link_libraries(pcl-static)
+
+include_directories(${SOURCE_DIR}/pcl)
 
 set(WITH_LOCAL_PCL ON CACHE BOOL "")

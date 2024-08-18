@@ -1,11 +1,8 @@
 
-pkg_check_modules(crypt libcrypt)
+pkg_check_modules(crypt REQUIRED libcrypt)
 
-if (crypt_FOUND)
-	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${crypt_INCLUDE_DIRS})
-	target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE ${crypt_LIBRARY_DIRS})
-	target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${crypt_LINK_LIBRARIES})
-	set(HAVE_LIBCRYPT ON CACHE BOOL "")
-else()
-	set(HAVE_LIBCRYPT OFF CACHE BOOL "")
-endif()
+include_directories(${crypt_INCLUDE_DIRS})
+link_directories(${crypt_LIBRARY_DIRS})
+link_libraries(${crypt_LINK_LIBRARIES})
+
+set(HAVE_LIBCRYPT ON CACHE BOOL "")
