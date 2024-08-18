@@ -1,10 +1,21 @@
 
 if (WITH_TALLOC)
-	pkg_check_modules(talloc REQUIRED talloc)
+	pkg_check_modules(talloc talloc)
 
+if (talloc_FOUND)
 	include_directories(${talloc_INCLUDE_DIRS})
 	link_directories(${talloc_LIBRARY_DIRS})
 	link_libraries(${talloc_LINK_LIBRARIES})
+else()
+
+	find_library(TALLOC_LIBRARY REQUIRED NAMES talloc)
+	find_path(TALLOC_INCLUDE_DIR REQUIRED NAMES talloc.h PATHS
+		/usr/include/ /usr/local/include/)
+
+	link_libraries(${TALLOC_LIBRARY})
+	include_directories(${TALLOC_INCLUDE_DIR})
+
+endif()
 
 	set(HAVE_LIBTALLOC ON CACHE BOOL "")
 	set(WITH_LOCAL_TALLOC OFF CACHE BOOL "")

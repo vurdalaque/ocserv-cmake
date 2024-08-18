@@ -4,7 +4,7 @@ find_program(GPERF gperf REQUIRED)
 ################################################################################
 
 if (WITH_PROTOBUF)
-pkg_check_modules(protobuf_c REQUIRED libprotobuf-c)
+	pkg_check_modules(protobuf_c REQUIRED libprotobuf-c)
 	include_directories(${protobuf_c_INCLUDE_DIRS})
 	link_directories(${protobuf_c_LIBRARY_DIRS})
 	link_libraries(${protobuf_c_LINK_LIBRARIES})
@@ -22,6 +22,21 @@ else()
 	set(WITH_LOCAL_PROTOBUF_C ON CACHE BOOL "")
 endif(WITH_PROTOBUF)
 
+################################################################################
+
+find_program(ASNPARSER asn1Parser REQUIRED)
+
+# libtasn1 tools
+if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/kkdcp_asn1_tab.c)
+	execute_process(COMMAND
+		COMMENT "parsing $(srcdir)/kkdcp.asn"
+		COMMAND ${ASNPARSER} ${SOURCE_DIR}/kkdcp.asn -o ${CMAKE_CURRENT_BINARY_DIR}/kkdcp_asn1_tab.c
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		OUTPUT_QUIET ERROR_QUIET)
+endif()
+
+################################################################################
+
 if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ipc.pb-c.h)
 	execute_process(COMMAND
 		COMMENT "protobufing ipc.proto"
@@ -38,7 +53,8 @@ endif()
 
 add_library(ipc-static STATIC
 	ctl.pb-c.c ctl.pb-c.h
-	ipc.pb-c.h ipc.pb-c.c)
+	ipc.pb-c.h ipc.pb-c.c
+	${SOURCE_DIR}/kkdcp_asn1_tab.c)
 
 target_link_libraries(ipc-static PRIVATE protobuf-static)
 link_libraries(ipc-static)

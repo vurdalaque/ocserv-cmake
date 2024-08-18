@@ -6,6 +6,7 @@ include(CheckFunctionExists)
 include(FindPkgConfig)
 include(CheckStructHasMember)
 include(CheckTypeSize)
+include(FindPackageHandleStandardArgs)
 
 ################################################################################
 
