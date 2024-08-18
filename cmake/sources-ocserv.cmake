@@ -1,6 +1,6 @@
 
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/ocserv.conf)
-	execute_process(COMMAND
+	execute_process(
 		COMMENT "copying defult config file"
 		COMMAND ${CMAKE_COMMAND} -E copy "${SOURCE_DIR}/../doc/sample.config" ${CMAKE_BINARY_DIR}/ocserv.conf)
 endif()
