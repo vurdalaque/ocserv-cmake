@@ -57,6 +57,10 @@ add_library(ipc-static STATIC
 	ipc.pb-c.h ipc.pb-c.c
 	${SOURCE_DIR}/kkdcp_asn1_tab.c)
 
+if (WITH_LOCAL_PROTOBUF_C)
+	target_include_directories(ipc-static PRIVATE "${SOURCE_DIR}/protobuf/protobuf-c")
+endif(WITH_LOCAL_PROTOBUF_C)
+
 target_link_libraries(ipc-static PRIVATE protobuf-static)
 link_libraries(ipc-static)
 
