@@ -18,7 +18,7 @@ else()
 		${SOURCE_DIR}/protobuf/protobuf-c/protobuf-c.h
 		${SOURCE_DIR}/protobuf/protobuf-c/protobuf-c.c)
 
-	include_directories(${SOURCE_DIR}/protobuf/protobuf-c)
+	include_directories(${SOURCE_DIR}/protobuf)
 	set(HAVE_LIBPROTOBUF_C ON CACHE BOOL "")
 	set(WITH_LOCAL_PROTOBUF_C ON CACHE BOOL "")
 endif(WITH_PROTOBUF)
@@ -56,10 +56,6 @@ add_library(ipc-static STATIC
 	ctl.pb-c.c ctl.pb-c.h
 	ipc.pb-c.h ipc.pb-c.c
 	${SOURCE_DIR}/kkdcp_asn1_tab.c)
-
-if (WITH_LOCAL_PROTOBUF_C)
-	target_include_directories(ipc-static PRIVATE "${SOURCE_DIR}/protobuf/protobuf-c")
-endif(WITH_LOCAL_PROTOBUF_C)
 
 target_link_libraries(ipc-static PRIVATE protobuf-static)
 link_libraries(ipc-static)
