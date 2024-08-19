@@ -18,6 +18,7 @@ else()
 		${SOURCE_DIR}/protobuf/protobuf-c/protobuf-c.h
 		${SOURCE_DIR}/protobuf/protobuf-c/protobuf-c.c)
 
+	include_directories(${SOURCE_DIR}/protobuf/protobuf-c)
 	set(HAVE_LIBPROTOBUF_C ON CACHE BOOL "")
 	set(WITH_LOCAL_PROTOBUF_C ON CACHE BOOL "")
 endif(WITH_PROTOBUF)
