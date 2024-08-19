@@ -28,8 +28,8 @@ find_program(ASNPARSER asn1Parser REQUIRED)
 
 # libtasn1 tools
 if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/kkdcp_asn1_tab.c)
+	message(STATUS "parsing $(srcdir)/kkdcp.asn")
 	execute_process(
-		COMMENT "parsing $(srcdir)/kkdcp.asn"
 		COMMAND ${ASNPARSER} ${SOURCE_DIR}/kkdcp.asn -o ${CMAKE_CURRENT_BINARY_DIR}/kkdcp_asn1_tab.c
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 		OUTPUT_QUIET ERROR_QUIET)
@@ -38,15 +38,15 @@ endif()
 ################################################################################
 
 if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ipc.pb-c.h)
+	message(STATUS "protobufing ipc.proto")
 	execute_process(
-		COMMENT "protobufing ipc.proto"
 		COMMAND ${PROTOC} --c_out=. --proto_path=${SOURCE_DIR} ipc.proto
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
 if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ctl.pb-c.h )
+	message(STATUS "protobufing ctl.proto")
 	execute_process(
-		COMMENT "protobufing ctl.proto"
 		COMMAND ${PROTOC} --c_out=. --proto_path=${SOURCE_DIR} ctl.proto
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
@@ -65,8 +65,8 @@ link_libraries(ipc-static)
 
 if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/http-heads.h)
 	# wsl requires /bin/sh
+	message(STATUS "gperfing http-heads.gperf")
 	execute_process(
-		COMMENT "gperfing http-heads.gperf"
 		COMMAND /bin/sh -c "${GPERF} --global-table -t ${SOURCE_DIR}/http-heads.gperf > ${CMAKE_CURRENT_BINARY_DIR}/http-heads.h"
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
