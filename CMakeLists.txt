@@ -93,6 +93,6 @@ install(
 	COMPONENT binaries)
 
 install(
-	TARGETS ${CMAKE_PROJECT_NAME}
+	FILES ocserv.conf
 	DESTINATION /etc/ocserv
 	COMPONENT config)
