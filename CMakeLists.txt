@@ -77,6 +77,7 @@ include(cmake/sources.cmake)
 include(cmake/sources-ocserv.cmake)
 include(cmake/sources-worker.cmake)
 include(cmake/sources-occtl.cmake)
+include(cmake/sources-ocpasswd.cmake)
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${SERVER_SOURCES})
 target_sources("${CMAKE_PROJECT_NAME}-worker" PRIVATE ${WORKER_SOURCES})
