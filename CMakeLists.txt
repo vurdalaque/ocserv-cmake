@@ -89,7 +89,7 @@ include(cmake/conf_info.cmake)
 ################################################################################
 
 install(
-	TARGETS "${CMAKE_PROJECT_NAME}" "${CMAKE_PROJECT_NAME}-worker"
+	TARGETS "${CMAKE_PROJECT_NAME}" "${CMAKE_PROJECT_NAME}-worker" ocpasswd
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 	COMPONENT binaries)
 
