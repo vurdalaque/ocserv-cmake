@@ -93,6 +93,6 @@ install(
 	COMPONENT binaries)
 
 install(
-	FILES ocserv.conf
+	FILES ${CMAKE_BINARY_DIR}/ocserv.conf
 	DESTINATION /etc/ocserv
 	COMPONENT config)
