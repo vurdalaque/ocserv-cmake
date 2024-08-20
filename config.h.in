@@ -290,3 +290,14 @@
 /** @todo: not implemented */
 #cmakedefine TRY_SHA2_CRYPT
 
+/* inih configuration */
+#define INI_ALLOW_MULTILINE 1
+
+/* inih configuration */
+#define INI_INLINE_COMMENT_PREFIXES "#"
+
+/* inih configuration */
+#define INI_MAX_LINE 2048
+
+/* inih configuration */
+#define INI_STOP_ON_FIRST_ERROR 1
