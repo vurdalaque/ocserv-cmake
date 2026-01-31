@@ -41,12 +41,13 @@ add_library(common-static STATIC
 	${SOURCE_DIR}/common/common.h
 	${SOURCE_DIR}/common/system.c
 	${SOURCE_DIR}/common/system.h
-	${SOURCE_DIR}/common/cloexec.c
-	${SOURCE_DIR}/common/cloexec.h
 	${SOURCE_DIR}/common/base64-helper.c
 	${SOURCE_DIR}/common/base64-helper.h
 	${SOURCE_DIR}/log.c
 	${SOURCE_DIR}/log.h
+
+	${SOURCE_DIR}/gnulib/cloexec.c
+	${SOURCE_DIR}/gnulib/cloexec.h
 )
 
 add_library(auth-static STATIC

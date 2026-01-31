@@ -2,6 +2,7 @@
 add_library(llhttp-static STATIC
 	${SOURCE_DIR}/llhttp/llhttp.c
 	${SOURCE_DIR}/llhttp/llhttp.h
+	${SOURCE_DIR}/llhttp/api.h
 	${SOURCE_DIR}/llhttp/api.c
 	${SOURCE_DIR}/llhttp/http.c)
 
