@@ -45,18 +45,24 @@ if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ipc.pb-c.h)
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
-if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ctl.pb-c.h )
+if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ctl.pb-c.h)
 	message(STATUS "protobufing ctl.proto")
 	execute_process(
 		COMMAND ${PROTOC} --c_out=. --proto_path=${SOURCE_DIR} ctl.proto
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
+if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/cfg.pb-c.h)
+	message(STATUS "protobufing cfg.proto")
+	execute_process(
+		COMMAND ${PROTOC} --c_out=. --proto_path=${SOURCE_DIR} cfg.proto
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 add_library(ipc-static STATIC
 	ctl.pb-c.c ctl.pb-c.h
 	ipc.pb-c.h ipc.pb-c.c
-	${SOURCE_DIR}/kkdcp_asn1_tab.c)
-
+	cfg.pb-c.c cfg.pb-c.h
+	kkdcp_asn1_tab.c)
 target_link_libraries(ipc-static PRIVATE protobuf-static)
 link_libraries(ipc-static)
 
@@ -65,11 +71,25 @@ link_libraries(ipc-static)
 # @todo: move to proper places
 
 if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/http-heads.h)
-	# wsl requires /bin/sh
 	message(STATUS "gperfing http-heads.gperf")
-	execute_process(
+	if (NOT EXISTS ${SOURCE_DIR}/http-heads.gperf)
+		message(FATAL_ERROR "http-heads.gperf not found at ${SOURCE_DIR}/http-heads.gperf")
+	endif()
+execute_process(
 		COMMAND /bin/sh -c "${GPERF} --global-table -t ${SOURCE_DIR}/http-heads.gperf > ${CMAKE_CURRENT_BINARY_DIR}/http-heads.h"
-		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		RESULT_VARIABLE GPERF_RESULT
+		ERROR_VARIABLE GPERF_ERROR)
+	if (NOT GPERF_RESULT EQUAL 0)
+		message(FATAL_ERROR "gperf failed: ${GPERF_ERROR}")
+	endif()
+	if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/http-heads.h)
+		message(FATAL_ERROR "http-heads.h not generated")
+	endif()
+	file(READ ${CMAKE_CURRENT_BINARY_DIR}/http-heads.h _tmp_content)
+	if (_tmp_content MATCHES "in_word_set")
+		message(STATUS "http-heads.h contains in_word_set")
+	else()
+		message(FATAL_ERROR "http-heads.h does not contain in_word_set. Content length: ${len(_tmp_content)}")
+	endif()
 endif()
-
-################################################################################

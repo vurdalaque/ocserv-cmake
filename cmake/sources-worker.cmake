@@ -2,7 +2,7 @@
 set(WORKER_SOURCES PRIVATE
 	${CORE_SOURCES}
 
-	http-heads.h
+${CMAKE_CURRENT_BINARY_DIR}/http-heads.h
 
 	${SOURCE_DIR}/html.c
 	${SOURCE_DIR}/html.h
@@ -40,22 +40,3 @@ target_link_libraries("${CMAKE_PROJECT_NAME}-worker" PRIVATE
 	common-static
 	auth-static
 	ccan-static)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
