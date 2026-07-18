@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 ################################################################################
-project(ocserv VERSION 1.4.0 LANGUAGES CXX C)
+project(ocserv VERSION 1.5.0 LANGUAGES CXX C)
 
 set(WITH_SECCOMP OFF CACHE BOOL "filtered syscalls will fail with a signal")
 set(WITH_PROTOBUF OFF CACHE BOOL "use the system protobuf-c library")
