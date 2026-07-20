@@ -38,12 +38,7 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/vurdalaque/ocserv-cmake.git $HOME/ocserv \
-	&& mkdir $HOME/ocserv/.build \
-	&& cd $HOME/ocserv/.build \
-	&& cmake .. -DWITH_NL=ON -DWITH_M=ON -DWITH_SYSTEMD=ON -DWITH_NL=ON -DCAPTURE_LATENCY_SUPPORT=ON \
-	&& cmake --build . --target install && rm -rf $HOME/ocserv
-
-
-
-
-
+ 	&& mkdir $HOME/ocserv/.build \
+ 	&& cd $HOME/ocserv/.build \
+ 	&& cmake .. -DWITH_NL=ON -DWITH_M=ON -DWITH_SYSTEMD=ON -DWITH_NL=ON -DCAPTURE_LATENCY_SUPPORT=ON \
+ 	&& cmake --build . --target install && rm -rf $HOME/ocserv

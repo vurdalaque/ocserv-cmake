@@ -1,8 +1,8 @@
 
-set(WORKER_SOURCES PRIVATE
+set(WORKER_SOURCES
 	${CORE_SOURCES}
 
-${CMAKE_CURRENT_BINARY_DIR}/http-heads.h
+	${CMAKE_CURRENT_BINARY_DIR}/http-heads.c
 
 	${SOURCE_DIR}/html.c
 	${SOURCE_DIR}/html.h

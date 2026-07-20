@@ -1,6 +1,12 @@
+find_library(WRAP_LIBRARY NAMES wrap)
+find_path(WRAP_INCLUDE_DIR tcpd.h)
 
-if (NOT WRAP_LIBRARY)
+if (WRAP_LIBRARY AND WRAP_INCLUDE_DIR)
+	set(HAVE_LIBWRAP ON CACHE BOOL "")
+	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${WRAP_INCLUDE_DIR})
+	target_include_directories(${CMAKE_PROJECT_NAME}-worker PRIVATE ${WRAP_INCLUDE_DIR})
+	target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${WRAP_LIBRARY})
+	target_link_libraries(${CMAKE_PROJECT_NAME}-worker PRIVATE ${WRAP_LIBRARY})
+else()
 	set(HAVE_LIBWRAP OFF CACHE BOOL "")
-
-	find_library(LIBNL_LIBRARY NAMES libwrap)
 endif()

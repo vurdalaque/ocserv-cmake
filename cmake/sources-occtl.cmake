@@ -1,5 +1,5 @@
 
-if (HAVE_LIBREADLINE AND HAVE_LIBNL)
+if (HAVE_LIBREADLINE)
 
 	add_executable(occtl
 		${SOURCE_DIR}/occtl/occtl.c
@@ -28,12 +28,26 @@ if (HAVE_LIBREADLINE AND HAVE_LIBNL)
 		VERSION="${CMAKE_PROJECT_VERSION}")
 
 	target_link_libraries(occtl PRIVATE
-		readline
+		${LIBREADLINE_LIBRARY}
 		common-static
-		ccan-static)
+		ccan-static
+		ipc-static)
+	add_dependencies(occtl ipc-generated)
+
+	if ("${GEOIP_LIBRARY}" STREQUAL "geoip")
+
+
+		target_include_directories(occtl PRIVATE ${geoip_INCLUDE_DIRS})
+		target_link_directories(occtl PRIVATE ${geoip_LIBRARY_DIRS})
+		target_link_libraries(occtl PRIVATE ${geoip_LINK_LIBRARIES})
+	elseif ("${GEOIP_LIBRARY}" STREQUAL "maxmind")
+		target_include_directories(occtl PRIVATE ${maxmindb_INCLUDE_DIRS})
+		target_link_directories(occtl PRIVATE ${maxmindb_LIBRARY_DIRS})
+		target_link_libraries(occtl PRIVATE ${maxmindb_LINK_LIBRARIES})
+	endif()
 
 	install(TARGETS occtl
-		DESTINATION ${CMAKE_INSTALL_PREFIX}
+		DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 		COMPONENT binaries)
 
 else()

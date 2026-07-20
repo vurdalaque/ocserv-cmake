@@ -36,6 +36,14 @@ SET(CORE_SOURCES
 	${SOURCE_DIR}/namespace.h
 	${SOURCE_DIR}/worker-log.c)
 
+if (ENABLE_COMPRESSION)
+	find_package(ZLIB REQUIRED)
+	list(APPEND CORE_SOURCES ${SOURCE_DIR}/lzs.c ${SOURCE_DIR}/lzs.h)
+	target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ZLIB::ZLIB)
+	target_link_libraries(${CMAKE_PROJECT_NAME}-worker PRIVATE ZLIB::ZLIB)
+endif()
+
+
 add_library(common-static STATIC
 	${SOURCE_DIR}/common/common.c
 	${SOURCE_DIR}/common/common.h
@@ -49,6 +57,8 @@ add_library(common-static STATIC
 	${SOURCE_DIR}/gnulib/cloexec.c
 	${SOURCE_DIR}/gnulib/cloexec.h
 )
+add_dependencies(common-static ipc-static)
+
 
 add_library(auth-static STATIC
 	${SOURCE_DIR}/auth/common.c
@@ -85,5 +95,6 @@ add_library(acc-static STATIC
 	${SOURCE_DIR}/acct/radius.h
 	${SOURCE_DIR}/acct/pam.c
 	${SOURCE_DIR}/acct/pam.h)
-
+add_dependencies(auth-static ipc-generated)
+add_dependencies(acc-static ipc-generated)
 

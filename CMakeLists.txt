@@ -19,6 +19,8 @@ set(WITH_TALLOC ON CACHE BOOL "use the system talloc library")
 set(ENABLE_COMPRESSION OFF CACHE BOOL "Compression support")
 set(GEOIP_LIBRARY "" CACHE STRING "") # geoip|maxmindb library
 set(OCCTL_PAGER "less" CACHE STRING "") # occtcl_pager
+set(FIREWALL_HELPER "iptables" CACHE STRING "firewall helper: iptables or nftables")
+set_property(CACHE FIREWALL_HELPER PROPERTY STRINGS iptables nftables)
 
 set(PACKAGE "ocserv" CACHE STRING "")
 set(PACKAGE_NAME "OpenConnect VPN Server" CACHE STRING "")
@@ -85,6 +87,19 @@ target_sources("${CMAKE_PROJECT_NAME}-worker" PRIVATE ${WORKER_SOURCES})
 ################################################################################
 
 include(cmake/conf_info.cmake)
+
+if (FIREWALL_HELPER STREQUAL "nftables")
+	set(FIREWALL_HELPER_SOURCE ${SOURCE_DIR}/ocserv-fw-nftables)
+else()
+	set(FIREWALL_HELPER_SOURCE ${SOURCE_DIR}/ocserv-fw-iptables)
+endif()
+
+install(
+	PROGRAMS ${FIREWALL_HELPER_SOURCE}
+	DESTINATION ${CMAKE_INSTALL_PREFIX}/libexec
+	RENAME ocserv-fw
+	COMPONENT binaries)
+
 
 ################################################################################
 
