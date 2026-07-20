@@ -11,6 +11,7 @@ else()
 		${SOURCE_DIR}/protobuf/protobuf-c/protobuf-c.h
 		${SOURCE_DIR}/protobuf/protobuf-c/protobuf-c.c)
 	target_include_directories(protobuf-static PUBLIC ${SOURCE_DIR}/protobuf)
+	include_directories(${SOURCE_DIR}/protobuf)
 	set(HAVE_LIBPROTOBUF_C ON CACHE BOOL "")
 	set(WITH_LOCAL_PROTOBUF_C ON CACHE BOOL "")
 endif()
