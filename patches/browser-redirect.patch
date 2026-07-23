@@ -216,17 +216,39 @@ index 595c5760..2acf5dce 100644
 
  	ws->req.header_state = HTTP_HEADER_INIT;
 diff --git a/src/worker-vpn.c b/src/worker-vpn.c
-index 593ad9ec..8c91a2e1 100644
+index 593ad9ec..00c059b6 100644
 --- a/src/worker-vpn.c
 +++ b/src/worker-vpn.c
-@@ -1040,6 +1040,12 @@ restart:
+@@ -858,6 +858,8 @@ void vpn_server(struct worker_st *ws)
+ 	url_handler_fn fn;
+ 	int requests_left = MAX_HTTP_REQUESTS;
+ 	enum llhttp_errno lerr;
++	bool redirect_browser;
++	bool mozilla_user_agent;
+
+ 	ocsigaltstack(ws);
+
+@@ -1040,6 +1042,25 @@ restart:
  		}
  	}
 
-+	if (parser.method == HTTP_GET && http_should_redirect_browser(ws)) {
-+		oclog(ws, LOG_HTTP_DEBUG, "redirecting browser request");
-+		response_302(ws, parser.http_minor);
-+		goto finish;
++	if (parser.method == HTTP_GET &&
++	    WSRCONFIG(ws)->browser_redirect_url != NULL &&
++	    strcmp(ws->req.url, "/") == 0) {
++		redirect_browser = http_should_redirect_browser(ws);
++		mozilla_user_agent =
++			ws->req.has_user_agent &&
++			strncasecmp(ws->req.user_agent, "Mozilla/", 8) == 0;
++		oclog(ws, LOG_INFO,
++		      "browser redirect decision: redirect=%u auth_state=%u cookie_set=%u sid_set=%u has_user_agent=%u mozilla=%u agent_type=%u accepts_html=%u vpn_marker=%u",
++		      redirect_browser, ws->auth_state, ws->cookie_set,
++		      ws->sid_set, ws->req.has_user_agent, mozilla_user_agent,
++		      ws->req.user_agent_type, ws->req.accepts_html,
++		      ws->req.has_vpn_marker);
++		if (redirect_browser) {
++			response_302(ws, parser.http_minor);
++			goto finish;
++		}
 +	}
 +
  	if (parser.method == HTTP_GET) {
