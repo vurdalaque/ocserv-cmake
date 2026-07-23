@@ -43,7 +43,12 @@ if (NOT PACKAGE_DOWNLOADED)
 	FetchContent_Declare(
 		${CMAKE_PROJECT_NAME}_src
 		GIT_REPOSITORY https://gitlab.com/openconnect/ocserv.git
-		GIT_TAG ${CMAKE_PROJECT_VERSION})
+		GIT_TAG ${CMAKE_PROJECT_VERSION}
+		PATCH_COMMAND
+			${CMAKE_COMMAND}
+				-DSOURCE_DIR:PATH=<SOURCE_DIR>
+				-DPATCH_FILE:FILEPATH=${CMAKE_CURRENT_LIST_DIR}/patches/browser-redirect.patch
+				-P ${CMAKE_CURRENT_LIST_DIR}/cmake/apply_patch.cmake)
 
 	FetchContent_MakeAvailable(${CMAKE_PROJECT_NAME}_src)
 
