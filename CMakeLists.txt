@@ -78,6 +78,7 @@ add_executable("${CMAKE_PROJECT_NAME}")
 add_executable("${CMAKE_PROJECT_NAME}-worker")
 
 include(cmake/autoconf.cmake)
+find_package(CURL REQUIRED)
 configure_file(config.h.in config.h @ONLY)
 
 include(cmake/sources.cmake)

@@ -39,4 +39,5 @@ target_compile_definitions("${CMAKE_PROJECT_NAME}-worker" PRIVATE
 target_link_libraries("${CMAKE_PROJECT_NAME}-worker" PRIVATE
 	common-static
 	auth-static
-	ccan-static)
+	ccan-static
+	CURL::libcurl)

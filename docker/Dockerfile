@@ -22,6 +22,7 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
 		libev-dev \
 		libnl-3-dev \
 		libcrypt-dev \
+		libcurl4-openssl-dev \
 		libnl-route-3-dev \
 		libsystemd-dev \
 		libreadline-dev \
