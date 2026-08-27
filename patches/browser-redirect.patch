@@ -507,13 +507,23 @@ diff --git a/src/worker-vpn.c b/src/worker-vpn.c
 index 2257f63..5c1c6d8 100644
 --- a/src/worker-vpn.c
 +++ b/src/worker-vpn.c
-@@ -859,6 +859,7 @@ void vpn_server(struct worker_st *ws)
+@@ -859,6 +859,8 @@ void vpn_server(struct worker_st *ws)
  	url_handler_fn fn;
  	int requests_left = MAX_HTTP_REQUESTS;
  	enum llhttp_errno lerr;
 +	enum http_route_decision route;
++	bool session_info_sent = false;
  
  	ocsigaltstack(ws);
+ 
+@@ -966,8 +967,6 @@ void vpn_server(struct worker_st *ws)
+ 	}
+ 
+ 	ws->session = session;
+-
+-	session_info_send(ws);
+ 
+ 	llhttp_settings_init(&settings);
  
 @@ -1041,23 +1042,8 @@ restart:
  		}
@@ -541,7 +551,7 @@ index 2257f63..5c1c6d8 100644
  		while (ws->req.message_complete == 0) {
  			nrecvd = cstp_recv(ws, ws->buffer, sizeof(ws->buffer));
  			CSTP_FATAL_ERR(ws, nrecvd);
-@@ -1081,11 +1067,33 @@ restart:
+@@ -1081,11 +1067,37 @@ restart:
  				exit_worker(ws);
  			}
  		}
@@ -556,6 +566,10 @@ index 2257f63..5c1c6d8 100644
 +	if (route == HTTP_ROUTE_REJECT) {
 +		response_404(ws, parser.http_minor);
 +		goto finish;
++	}
++	if (!session_info_sent) {
++		session_info_send(ws);
++		session_info_sent = true;
 +	}
 +
 +	if (parser.method == HTTP_GET) {
