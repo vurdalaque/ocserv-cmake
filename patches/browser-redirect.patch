@@ -7,7 +7,7 @@ index 2bced83..613c28f 100644
    optional string camouflage_secret  = 122; /* [scope: vhost] */
    optional string camouflage_realm   = 123; /* [scope: vhost] */
 +  optional string browser_redirect_url = 124; /* [scope: vhost] */
-
+ 
    /* ------------------------------------------------------------------ */
    /* String arrays                                                        */
 diff --git a/src/config.c b/src/config.c
@@ -26,7 +26,7 @@ index a984ebd..bb6a962 100644
 @@ -1914,6 +1916,22 @@ static void vhost_inherit_static_config(vhost_cfg_st *vhost,
  		vhost->static_config.acct = defvhost->static_config.acct;
  }
-
+ 
 +static bool valid_browser_redirect_url(const char *url)
 +{
 +	const unsigned char *p;
@@ -47,9 +47,9 @@ index a984ebd..bb6a962 100644
  static void check_cfg(vhost_cfg_st *vhost, vhost_cfg_st *defvhost,
  		      unsigned int silent)
 @@ -1925,6 +1943,22 @@ static void check_cfg(vhost_cfg_st *vhost, vhost_cfg_st *defvhost,
-
+ 
  	config = vhost->config;
-
+ 
 +	if (config->browser_redirect_url != NULL) {
 +		if (!valid_browser_redirect_url(config->browser_redirect_url)) {
 +			fprintf(stderr,
@@ -69,25 +69,19 @@ index a984ebd..bb6a962 100644
  	if (vhost->static_config.auth[0].enabled == 0) {
  		fprintf(stderr,
  			ERRSTR "%sno authentication method was specified!\n",
-diff --git a/src/worker-http-handlers.c b/src/worker-http-handlers.c
-index f825c02..ec3f189 100644
---- a/src/worker-http-handlers.c
-+++ b/src/worker-http-handlers.c
-@@ -23,6 +23,7 @@
- #include <gnutls/gnutls.h>
- #include <gnutls/crypto.h>
- #include <gnutls/x509.h>
+diff --git a/src/worker-http-proxy.c b/src/worker-http-proxy.c
+new file mode 100644
+index 0000000..ea0c6a5
+--- /dev/null
++++ b/src/worker-http-proxy.c
+@@ -0,0 +1,327 @@
 +#include <curl/curl.h>
- #include <errno.h>
- #include <stdlib.h>
- #include <stdarg.h>
-@@ -41,6 +42,186 @@
- #define HTML_404 "<html><body><h1>404 Not Found</h1></body></html>\r\n"
- #define HTML_401 "<html><body><h1>401 Unauthorized</h1></body></html>\r\n"
-
++#include <string.h>
++
++#include "worker.h"
++
 +struct proxy_response_st {
 +	worker_st *ws;
-+	unsigned int http_ver;
 +	bool headers_complete;
 +};
 +
@@ -154,6 +148,14 @@ index f825c02..ec3f189 100644
 +	return length;
 +}
 +
++static struct curl_slist *proxy_append_header(struct curl_slist *headers,
++					      const char *header)
++{
++	struct curl_slist *new_headers = curl_slist_append(headers, header);
++
++	return new_headers;
++}
++
 +static struct curl_slist *proxy_request_headers(worker_st *ws)
 +{
 +	struct curl_slist *headers = NULL;
@@ -163,6 +165,7 @@ index f825c02..ec3f189 100644
 +	const char *limit = line + ws->req.proxy_headers.length;
 +	char *header;
 +	char *forwarded_for;
++	struct curl_slist *new_headers;
 +
 +	while (line < limit) {
 +		end = memchr(line, '\n', limit - line);
@@ -177,9 +180,10 @@ index f825c02..ec3f189 100644
 +				goto error;
 +			memcpy(header, line, end - line);
 +			header[end - line] = 0;
-+			headers = curl_slist_append(headers, header);
-+			if (headers == NULL)
++			new_headers = proxy_append_header(headers, header);
++			if (new_headers == NULL)
 +				goto error;
++			headers = new_headers;
 +		}
 +		line = next;
 +	}
@@ -188,17 +192,146 @@ index f825c02..ec3f189 100644
 +				       ws->remote_ip_str);
 +	if (forwarded_for == NULL)
 +		goto error;
-+	headers = curl_slist_append(headers, forwarded_for);
-+	if (headers == NULL)
++	new_headers = proxy_append_header(headers, forwarded_for);
++	if (new_headers == NULL)
 +		goto error;
-+	headers = curl_slist_append(headers, "X-Forwarded-Proto: https");
-+	if (headers == NULL)
++	headers = new_headers;
++	new_headers = proxy_append_header(headers, "X-Forwarded-Proto: https");
++	if (new_headers == NULL)
 +		goto error;
-+	return headers;
++	return new_headers;
 +
 +error:
 +	curl_slist_free_all(headers);
 +	return NULL;
++}
++
++static bool header_name_equals(const char *line, size_t length, const char *name)
++{
++	size_t name_length = strlen(name);
++
++	return length > name_length && line[name_length] == ':' &&
++	       strncasecmp(line, name, name_length) == 0;
++}
++
++static bool value_contains_case(const char *value, size_t value_length,
++				const char *needle)
++{
++	size_t needle_length = strlen(needle);
++	size_t i;
++
++	if (needle_length > value_length)
++		return false;
++
++	for (i = 0; i <= value_length - needle_length; i++) {
++		if (strncasecmp(value + i, needle, needle_length) == 0)
++			return true;
++	}
++
++	return false;
++}
++
++static bool request_header_contains(worker_st *ws, const char *name,
++				    const char *needle)
++{
++	const char *line = (const char *)ws->req.proxy_headers.data;
++	const char *limit = line + ws->req.proxy_headers.length;
++	const char *end;
++	const char *value;
++
++	while (line < limit) {
++		end = memchr(line, '\n', limit - line);
++		if (end == NULL)
++			end = limit;
++		if (header_name_equals(line, end - line, name)) {
++			value = line + strlen(name) + 1;
++			while (value < end && (*value == ' ' || *value == '\t'))
++				value++;
++			if (value_contains_case(value, end - value, needle))
++				return true;
++		}
++		line = end < limit ? end + 1 : limit;
++	}
++
++	return false;
++}
++
++static bool request_has_vpn_markers(worker_st *ws)
++{
++	const char *line = (const char *)ws->req.proxy_headers.data;
++	const char *limit = line + ws->req.proxy_headers.length;
++	const char *end;
++
++	while (line < limit) {
++		end = memchr(line, '\n', limit - line);
++		if (end == NULL)
++			end = limit;
++		if ((end - line > sizeof("X-CSTP-") - 1 &&
++		     strncasecmp(line, "X-CSTP-", sizeof("X-CSTP-") - 1) == 0) ||
++		    (end - line > sizeof("X-DTLS-") - 1 &&
++		     strncasecmp(line, "X-DTLS-", sizeof("X-DTLS-") - 1) == 0) ||
++		    (end - line > sizeof("X-AnyConnect-") - 1 &&
++		     strncasecmp(line, "X-AnyConnect-",
++				 sizeof("X-AnyConnect-") - 1) == 0) ||
++		    header_name_equals(line, end - line, "X-Support-HTTP-Auth"))
++			return true;
++		if (header_name_equals(line, end - line, "Cookie")) {
++			const char *value = line + sizeof("Cookie");
++
++			if (value_contains_case(value, end - value, "webvpn=") ||
++			    value_contains_case(value, end - value, "webvpncontext=") ||
++			    value_contains_case(value, end - value, "webvpnlogin="))
++				return true;
++		}
++		line = end < limit ? end + 1 : limit;
++	}
++
++	return request_header_contains(ws, "User-Agent", "OpenConnect") ||
++	       request_header_contains(ws, "User-Agent", "AnyConnect");
++}
++
++static enum http_route_decision route_decision(worker_st *ws,
++						enum llhttp_method method)
++{
++	if (method == HTTP_CONNECT)
++		return HTTP_ROUTE_OCSERV;
++
++	if (method == HTTP_GET && strcmp(ws->req.url, "/") == 0) {
++		if (WSRCONFIG(ws)->browser_redirect_url != NULL &&
++		    request_header_contains(ws, "Accept", "text/html") &&
++		    !request_has_vpn_markers(ws))
++			return HTTP_ROUTE_UPSTREAM;
++		return HTTP_ROUTE_OCSERV;
++	}
++
++	if (http_url_is_known(ws, ws->req.url))
++		return HTTP_ROUTE_OCSERV;
++
++	if (WSRCONFIG(ws)->browser_redirect_url == NULL)
++		return method == HTTP_POST ? HTTP_ROUTE_OCSERV : HTTP_ROUTE_REJECT;
++
++	switch (method) {
++	case HTTP_GET:
++	case HTTP_POST:
++	case HTTP_HEAD:
++	case HTTP_OPTIONS:
++		return HTTP_ROUTE_UPSTREAM;
++	default:
++		return HTTP_ROUTE_REJECT;
++	}
++}
++
++enum http_route_decision http_route_request(worker_st *ws,
++					    enum llhttp_method method)
++{
++	enum http_route_decision decision = route_decision(ws, method);
++
++	oclog(ws, LOG_INFO,
++	      "browser_redirect route=%s method=%s path=%s",
++	      decision == HTTP_ROUTE_OCSERV ? "ocserv" :
++	      decision == HTTP_ROUTE_UPSTREAM ? "upstream" : "reject",
++	      llhttp_method_name(method), ws->req.url);
++	return decision;
 +}
 +
 +int proxy_fallback_handler(worker_st *ws, unsigned int http_ver, const char *method)
@@ -206,7 +339,7 @@ index f825c02..ec3f189 100644
 +	CURL *curl;
 +	CURLcode result;
 +	struct curl_slist *headers;
-+	struct proxy_response_st response = { .ws = ws, .http_ver = http_ver };
++	struct proxy_response_st response = { .ws = ws };
 +	char *url;
 +	static bool curl_initialized;
 +
@@ -244,43 +377,45 @@ index f825c02..ec3f189 100644
 +	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 +
 +	if (strcmp(method, "POST") == 0) {
-+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, ws->req.body);
-+		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE,
-+				 ws->req.body_length);
++		curl_easy_setopt(curl, CURLOPT_POSTFIELDS,
++				 ws->req.body == NULL ? "" : ws->req.body);
++		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, ws->req.body_length);
++	} else if (strcmp(method, "HEAD") == 0) {
++		curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
 +	}
 +
-+	oclog(ws, LOG_INFO, "proxying %s %s", method, ws->req.url);
 +	result = curl_easy_perform(curl);
 +	curl_easy_cleanup(curl);
 +	curl_slist_free_all(headers);
 +
 +	if (result != CURLE_OK) {
-+		oclog(ws, LOG_INFO, "proxy failed for %s: %s", ws->req.url,
-+		      curl_easy_strerror(result));
++		oclog(ws, LOG_INFO,
++		      "browser_redirect upstream_result=error method=%s path=%s error=%s",
++		      method, ws->req.url, curl_easy_strerror(result));
 +		if (!response.headers_complete)
 +			return response_502(ws, http_ver);
 +		return -1;
 +	}
 +
++	oclog(ws, LOG_INFO,
++	      "browser_redirect upstream_result=ok method=%s path=%s",
++	      method, ws->req.url);
 +	return response.headers_complete ? 0 : response_502(ws, http_ver);
 +}
-+
- int response_404(worker_st *ws, unsigned int http_ver)
- {
- 	if (cstp_printf(ws, "HTTP/1.%u 404 Not found\r\n", http_ver) < 0 ||
 diff --git a/src/worker-http.c b/src/worker-http.c
-index 54e0b15..3ec973d 100644
+index 54e0b15..f6c777e 100644
 --- a/src/worker-http.c
 +++ b/src/worker-http.c
-@@ -291,6 +291,24 @@ static bool header_is_sensitive(str_st *header)
+@@ -291,6 +291,25 @@ static bool header_is_sensitive(str_st *header)
  	return false;
  }
-
+ 
 +static bool header_should_proxy(const str_st *header)
 +{
 +	static const char *const excluded[] = {
 +		"Connection", "Content-Length", "Host", "Keep-Alive",
-+		"Proxy-Connection", "TE", "Trailer", "Transfer-Encoding", "Upgrade"
++		"Proxy-Connection", "TE", "Trailer", "Transfer-Encoding", "Upgrade",
++		"X-Forwarded-For", "X-Forwarded-Proto"
 +	};
 +	unsigned int i;
 +
@@ -297,10 +432,10 @@ index 54e0b15..3ec973d 100644
  static void header_value_check(struct worker_st *ws, struct http_req_st *req)
  {
  	unsigned int tmplen, i;
-@@ -326,6 +344,15 @@ static void header_value_check(struct worker_st *ws, struct http_req_st *req)
+@@ -326,6 +345,15 @@ static void header_value_check(struct worker_st *ws, struct http_req_st *req)
  	memcpy(value, req->value.data, value_length);
  	value[value_length] = 0;
-
+ 
 +	if (header_should_proxy(&req->header) &&
 +	    (str_append_data(&req->proxy_headers, req->header.data,
 +			     req->header.length) < 0 ||
@@ -313,23 +448,54 @@ index 54e0b15..3ec973d 100644
  	switch (req->next_header) {
  	case HEADER_MASTER_SECRET:
  		if (req->use_psk || !WSRCONFIG(ws)->dtls_legacy) /* ignored */
-@@ -971,6 +998,7 @@ void http_req_init(worker_st *ws)
+@@ -772,6 +800,30 @@ url_handler_fn http_get_url_handler(const char *url)
+ 	return NULL;
+ }
+ 
++int http_url_is_known(worker_st *ws, const char *url)
++{
++	const struct known_urls_st *p;
++	unsigned int len = strlen(url);
++	unsigned int i;
++
++	for (p = known_urls; p->url != NULL; p++) {
++		if ((len == p->url_size && strcmp(p->url, url) == 0) ||
++		    (len >= p->url_size &&
++		     strncmp(p->url, url, p->url_size) == 0 &&
++		     (p->partial_match != 0 || url[p->url_size] == '/' ||
++		      url[p->url_size] == '?')))
++			return 1;
++	}
++
++	for (i = 0; i < WSRCONFIG(ws)->n_kkdcp; i++) {
++		if (WSRCONFIG(ws)->kkdcp[i]->url &&
++		    strcmp(WSRCONFIG(ws)->kkdcp[i]->url, url) == 0)
++			return 1;
++	}
++
++	return 0;
++}
++
+ url_handler_fn http_post_known_service_check(struct worker_st *ws,
+ 					     const char *url)
+ {
+@@ -971,6 +1023,7 @@ void http_req_init(worker_st *ws)
  {
  	str_init(&ws->req.header, ws);
  	str_init(&ws->req.value, ws);
 +	str_init(&ws->req.proxy_headers, ws);
  }
-
+ 
  void http_req_reset(worker_st *ws)
-@@ -985,6 +1013,7 @@ void http_req_reset(worker_st *ws)
+@@ -985,6 +1038,7 @@ void http_req_reset(worker_st *ws)
  	ws->req.header_state = HTTP_HEADER_INIT;
  	str_reset(&ws->req.header);
  	str_reset(&ws->req.value);
 +	str_reset(&ws->req.proxy_headers);
  }
-
+ 
  void http_req_deinit(worker_st *ws)
-@@ -992,6 +1021,7 @@ void http_req_deinit(worker_st *ws)
+@@ -992,6 +1046,7 @@ void http_req_deinit(worker_st *ws)
  	http_req_reset(ws);
  	str_clear(&ws->req.header);
  	str_clear(&ws->req.value);
@@ -338,55 +504,129 @@ index 54e0b15..3ec973d 100644
  	ws->req.body = NULL;
  }
 diff --git a/src/worker-vpn.c b/src/worker-vpn.c
-index 2257f63..dea4437 100644
+index 2257f63..5c1c6d8 100644
 --- a/src/worker-vpn.c
 +++ b/src/worker-vpn.c
-@@ -1044,9 +1044,12 @@ restart:
- 	if (parser.method == HTTP_GET) {
- 		oclog(ws, LOG_HTTP_DEBUG, "HTTP GET %s", ws->req.url);
- 		fn = http_get_url_handler(ws->req.url);
-+		if (fn == NULL && WSRCONFIG(ws)->browser_redirect_url != NULL) {
-+			ret = proxy_fallback_handler(ws, parser.http_minor, "GET");
-+			goto finish;
-+		}
- 		if (fn == NULL) {
+@@ -859,6 +859,7 @@ void vpn_server(struct worker_st *ws)
+ 	url_handler_fn fn;
+ 	int requests_left = MAX_HTTP_REQUESTS;
+ 	enum llhttp_errno lerr;
++	enum http_route_decision route;
+ 
+ 	ocsigaltstack(ws);
+ 
+@@ -1041,23 +1042,8 @@ restart:
+ 		}
+ 	}
+ 
+-	if (parser.method == HTTP_GET) {
+-		oclog(ws, LOG_HTTP_DEBUG, "HTTP GET %s", ws->req.url);
+-		fn = http_get_url_handler(ws->req.url);
+-		if (fn == NULL) {
 -			oclog(ws, LOG_HTTP_DEBUG, "unexpected URL %s",
 -			      ws->req.url);
-+			oclog(ws, LOG_HTTP_DEBUG, "unexpected URL %s", ws->req.url);
+-			response_404(ws, parser.http_minor);
+-			goto finish;
+-		}
+-		ret = fn(ws, parser.http_minor);
+-		if (ret == 0 &&
+-		    (parser.http_major != 1 || parser.http_minor != 0))
+-			goto restart;
+-
+-	} else if (parser.method == HTTP_POST) {
+-		/* continue reading */
+-		oclog(ws, LOG_HTTP_DEBUG, "HTTP POST %s", ws->req.url);
++	if (parser.method == HTTP_POST) {
++		/* Читаем тело запроса до выбора upstream relay. */
+ 		while (ws->req.message_complete == 0) {
+ 			nrecvd = cstp_recv(ws, ws->buffer, sizeof(ws->buffer));
+ 			CSTP_FATAL_ERR(ws, nrecvd);
+@@ -1081,11 +1067,33 @@ restart:
+ 				exit_worker(ws);
+ 			}
+ 		}
++	}
+ 
++	route = http_route_request(ws, parser.method);
++	if (route == HTTP_ROUTE_UPSTREAM) {
++		ret = proxy_fallback_handler(ws, parser.http_minor,
++					     llhttp_method_name(parser.method));
++		goto finish;
++	}
++	if (route == HTTP_ROUTE_REJECT) {
++		response_404(ws, parser.http_minor);
++		goto finish;
++	}
++
++	if (parser.method == HTTP_GET) {
++		fn = http_get_url_handler(ws->req.url);
++		if (fn == NULL) {
++			response_404(ws, parser.http_minor);
++			goto finish;
++		}
++		ret = fn(ws, parser.http_minor);
++		if (ret == 0 &&
++		    (parser.http_major != 1 || parser.http_minor != 0))
++			goto restart;
++
++	} else if (parser.method == HTTP_POST) {
+ 		fn = http_post_url_handler(ws, ws->req.url);
+ 		if (fn == NULL) {
+-			oclog(ws, LOG_HTTP_DEBUG, "unexpected POST URL %s",
+-			      ws->req.url);
  			response_404(ws, parser.http_minor);
  			goto finish;
  		}
-@@ -1082,7 +1085,11 @@ restart:
- 			}
- 		}
-
--		fn = http_post_url_handler(ws, ws->req.url);
-+		fn = http_post_known_service_check(ws, ws->req.url);
-+		if (fn == NULL && WSRCONFIG(ws)->browser_redirect_url != NULL) {
-+			ret = proxy_fallback_handler(ws, parser.http_minor, "POST");
-+			goto finish;
-+		}
- 		if (fn == NULL) {
- 			oclog(ws, LOG_HTTP_DEBUG, "unexpected POST URL %s",
- 			      ws->req.url);
+@@ -1096,15 +1104,12 @@ restart:
+ 			goto restart;
+ 
+ 	} else if (parser.method == HTTP_CONNECT) {
+-		oclog(ws, LOG_HTTP_DEBUG, "HTTP CONNECT %s", ws->req.url);
+ 		ret = connect_handler(ws);
+ 		if (ret == 0 &&
+ 		    (parser.http_major != 1 || parser.http_minor != 0))
+ 			goto restart;
+ 
+ 	} else {
+-		oclog(ws, LOG_HTTP_DEBUG, "unexpected HTTP method %s",
+-		      llhttp_method_name(parser.method));
+ 		response_404(ws, parser.http_minor);
+ 	}
+ 
 diff --git a/src/worker.h b/src/worker.h
-index 11c217a..44ca289 100644
+index 11c217a..dd3fb70 100644
 --- a/src/worker.h
 +++ b/src/worker.h
 @@ -133,6 +133,7 @@ struct http_req_st {
-
+ 
  	str_st header;
  	str_st value;
 +	str_st proxy_headers;
  	unsigned int header_state;
  	size_t header_bytes;
-
-@@ -368,6 +369,8 @@ int post_kkdcp_handler(worker_st *server, unsigned int http_ver);
+ 
+@@ -368,6 +369,16 @@ int post_kkdcp_handler(worker_st *server, unsigned int http_ver);
  int get_svc_handler(worker_st *ws, unsigned int http_ver);
  int post_svc_handler(worker_st *ws, unsigned int http_ver);
-
+ 
++enum http_route_decision {
++	HTTP_ROUTE_OCSERV,
++	HTTP_ROUTE_UPSTREAM,
++	HTTP_ROUTE_REJECT,
++};
++
++enum http_route_decision http_route_request(worker_st *ws,
++					    enum llhttp_method method);
 +int proxy_fallback_handler(worker_st *ws, unsigned int http_ver,
-+			   const char *method);
++				   const char *method);
  int response_404(worker_st *ws, unsigned int http_ver);
  int response_401(worker_st *ws, unsigned int http_ver, char *realm);
  int get_empty_handler(worker_st *server, unsigned int http_ver);
+@@ -396,6 +407,7 @@ unsigned int valid_hostname(const char *host);
+ void strip_domain(char *host);
+ 
+ url_handler_fn http_get_url_handler(const char *url);
++int http_url_is_known(worker_st *ws, const char *url);
+ url_handler_fn http_post_url_handler(worker_st *ws, const char *url);
+ url_handler_fn http_post_known_service_check(worker_st *ws, const char *url);
+ 

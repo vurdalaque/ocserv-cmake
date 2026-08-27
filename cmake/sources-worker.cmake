@@ -13,6 +13,7 @@ set(WORKER_SOURCES
 	${SOURCE_DIR}/worker-bandwidth.h
 	${SOURCE_DIR}/worker-http.c
 	${SOURCE_DIR}/worker-http-handlers.c
+	${SOURCE_DIR}/worker-http-proxy.c
 	${SOURCE_DIR}/worker-kkdcp.c
 	${SOURCE_DIR}/worker-misc.c
 	${SOURCE_DIR}/worker-privs.c
